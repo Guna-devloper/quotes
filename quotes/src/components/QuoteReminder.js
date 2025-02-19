@@ -3,19 +3,8 @@ import { Card, Button, Form, Container } from "react-bootstrap";
 import { FaBell } from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext"; // Import dark mode context
 import toast, { Toaster } from "react-hot-toast"; // Import react-hot-toast
-import { signOut } from "firebase/auth";
-import { auth } from "../firebaseConfig";
-import { useNavigate } from "react-router-dom";
 
 const QuoteReminder = () => {
-
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    signOut(auth);
-    navigate("/login");
-  };
-
   const [time, setTime] = useState(localStorage.getItem("reminderTime") || "");
   const [customQuote, setCustomQuote] = useState("");
   const [favoriteQuotes, setFavoriteQuotes] = useState(
@@ -128,10 +117,7 @@ const QuoteReminder = () => {
           >
             <FaBell className="me-2" /> Set Reminder
           </Button>
-          <Button variant="danger" onClick={handleLogout} className="w-100 d-flex align-items-center justify-content-center py-2 mt-2">Logout</Button>
-
         </Form>
-
       </Card>
 
       {/* React Toaster for notifications */}
