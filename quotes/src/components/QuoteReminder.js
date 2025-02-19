@@ -12,6 +12,28 @@ const QuoteReminder = () => {
   );
   const { darkMode } = useTheme(); // Get dark mode state
 
+  // ✅ Request Notification Permission (Fixed)
+  const requestNotificationPermission = async () => {
+    if ("Notification" in window && "serviceWorker" in navigator) {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        toast.success("Notifications enabled! ✅");
+      } else {
+        toast.error("Please enable notifications in your browser settings! ⚠️");
+      }
+    } else {
+      toast.error("Notifications are not supported on your device. ❌");
+    }
+  };
+
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").then((registration) => {
+        console.log("Service Worker registered with scope:", registration.scope);
+      });
+    }
+  }, []);
+
   const scheduleNotification = () => {
     if (!time) {
       toast.error("Please select a time for the reminder! ⏰");
@@ -33,8 +55,7 @@ const QuoteReminder = () => {
     console.log(`Notification scheduled in ${delay / 1000} seconds`);
 
     setTimeout(() => {
-      const finalQuote = customQuote || getRandomQuote();
-      showNotification("Daily Quote Reminder", finalQuote);
+      showNotification("Daily Quote Reminder", customQuote || getRandomQuote());
     }, delay);
 
     toast.success("Reminder set successfully! ✅");
@@ -48,11 +69,14 @@ const QuoteReminder = () => {
     return favoriteQuotes[randomIndex];
   };
 
+  // ✅ Fix: Call requestNotificationPermission properly
   const showNotification = (title, body) => {
     if (Notification.permission === "granted") {
-      new Notification(title, { body });
+      navigator.serviceWorker.ready.then((registration) => {
+        registration.showNotification(title, { body });
+      });
     } else {
-      alert("Please allow notifications to receive reminders!");
+      requestNotificationPermission(); // 🔥 FIX: Defined before use
     }
   };
 

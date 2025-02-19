@@ -19,19 +19,18 @@ const messaging = getMessaging(app);
 
 // Request Notification Permission & Get Token
 export const requestNotificationPermission = async () => {
-  try {
-    const permission = await Notification.requestPermission();
-    if (permission === "granted") {
-      console.log("Notification permission granted.");
-      const token = await getToken(messaging, { vapidKey: "BH8I2NA_9bOwz4x_tIHXocHT_WrUsY5UH9Vrt7wgUruiUv4LOVclEeXyiOuZf5pgJ3uPvi-7skuuAYOQs6CcOqs" });
-      console.log("FCM Token:", token);
+    if ("Notification" in window && "serviceWorker" in navigator) {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        toast.success("Notifications enabled! ✅");
+      } else {
+        toast.error("Please enable notifications in your browser settings! ⚠️");
+      }
     } else {
-      console.log("Notification permission denied.");
+      toast.error("Notifications are not supported on your device. ❌");
     }
-  } catch (error) {
-    console.error("Error getting permission", error);
-  }
-};
+  };
+  
 
 // Handle Incoming Messages
 onMessage(messaging, (payload) => {
