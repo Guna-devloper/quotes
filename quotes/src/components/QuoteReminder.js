@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button, Form, Container } from "react-bootstrap";
-import { FaBell } from "react-icons/fa";
-import { useTheme } from "../context/ThemeContext"; // Import dark mode context
-import toast, { Toaster } from "react-hot-toast"; // Import react-hot-toast
+import { Card, Button, Form, Container, ListGroup } from "react-bootstrap";
+import { FaBell, FaTrash } from "react-icons/fa";
+import { useTheme } from "../context/ThemeContext";
+import toast, { Toaster } from "react-hot-toast";
 
 const QuoteReminder = () => {
-  const [time, setTime] = useState(localStorage.getItem("reminderTime") || "");
+  const [time, setTime] = useState("");
   const [customQuote, setCustomQuote] = useState("");
-  const [favoriteQuotes, setFavoriteQuotes] = useState(
-    JSON.parse(localStorage.getItem("favoriteQuotes")) || []
+  const [reminders, setReminders] = useState(
+    JSON.parse(localStorage.getItem("reminders")) || []
   );
-  const { darkMode } = useTheme(); // Get dark mode state
+  const { darkMode } = useTheme();
 
-  // ✅ Request Notification Permission (Fixed)
+  // ✅ Request Notification Permission
   const requestNotificationPermission = async () => {
     if ("Notification" in window && "serviceWorker" in navigator) {
       const permission = await Notification.requestPermission();
@@ -40,7 +40,10 @@ const QuoteReminder = () => {
       return;
     }
 
-    localStorage.setItem("reminderTime", time);
+    const newReminder = { time, quote: customQuote || getRandomQuote() };
+    const updatedReminders = [...reminders, newReminder];
+    setReminders(updatedReminders);
+    localStorage.setItem("reminders", JSON.stringify(updatedReminders));
 
     const now = new Date();
     const [hours, minutes] = time.split(":").map(Number);
@@ -55,38 +58,44 @@ const QuoteReminder = () => {
     console.log(`Notification scheduled in ${delay / 1000} seconds`);
 
     setTimeout(() => {
-      showNotification("Daily Quote Reminder", customQuote || getRandomQuote());
+      showNotification("Daily Quote Reminder", newReminder.quote);
     }, delay);
 
     toast.success("Reminder set successfully! ✅");
+
+    // ✅ Reset input fields after setting the reminder
+    setTime("");
+    setCustomQuote("");
   };
 
   const getRandomQuote = () => {
-    if (favoriteQuotes.length === 0) {
-      return "Here’s your daily dose of inspiration! ✨";
-    }
-    const randomIndex = Math.floor(Math.random() * favoriteQuotes.length);
-    return favoriteQuotes[randomIndex];
+    return "Here’s your daily dose of inspiration! ✨";
   };
 
-  // ✅ Fix: Call requestNotificationPermission properly
   const showNotification = (title, body) => {
     if (Notification.permission === "granted") {
       navigator.serviceWorker.ready.then((registration) => {
         registration.showNotification(title, { body });
       });
     } else {
-      requestNotificationPermission(); // 🔥 FIX: Defined before use
+      requestNotificationPermission();
     }
   };
 
+  const deleteReminder = (index) => {
+    const updatedReminders = reminders.filter((_, i) => i !== index);
+    setReminders(updatedReminders);
+    localStorage.setItem("reminders", JSON.stringify(updatedReminders));
+    toast.success("Reminder deleted successfully! ❌");
+  };
+
   return (
-    <Container className="d-flex justify-content-center align-items-center min-vh-100">
+    <Container className="d-flex flex-column justify-content-center align-items-center min-vh-100">
       <Card
         style={{ width: "100%", maxWidth: "400px" }}
         className={`p-4 shadow-lg text-center ${darkMode ? "bg-dark text-light" : "bg-light text-dark"}`}
       >
-        <h4 className="mb-4 fw-bold">📅 Set Daily Quote Reminder</h4>
+        <h4 className="mb-4 fw-bold">📅 Set Multiple Quote Reminders</h4>
         <Form>
           <Form.Group className="mb-3">
             <Form.Control
@@ -98,7 +107,6 @@ const QuoteReminder = () => {
             />
           </Form.Group>
 
-          {/* Custom Quote Input Field */}
           <Form.Group className="mb-3">
             <Form.Control
               type="text"
@@ -118,9 +126,28 @@ const QuoteReminder = () => {
             <FaBell className="me-2" /> Set Reminder
           </Button>
         </Form>
+
+        {/* Display Scheduled Reminders */}
+        {reminders.length > 0 && (
+          <ListGroup className="mt-4">
+            {reminders.map((reminder, index) => (
+              <ListGroup.Item
+                key={index}
+                className={`d-flex justify-content-between align-items-center ${darkMode ? "bg-secondary text-light" : ""}`}
+              >
+                <span>
+                  ⏰ {reminder.time} - {reminder.quote}
+                </span>
+                <Button variant="danger" size="sm" onClick={() => deleteReminder(index)}>
+                  <FaTrash />
+                </Button>
+              </ListGroup.Item>
+            ))}
+          </ListGroup>
+        )}
       </Card>
 
-      {/* React Toaster for notifications */}
+      {/* Toast Notifications */}
       <Toaster position="top-center" reverseOrder={false} />
     </Container>
   );
