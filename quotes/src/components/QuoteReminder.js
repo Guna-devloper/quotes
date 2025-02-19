@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Card, Button, Form, Container, ListGroup } from "react-bootstrap";
 import { FaBell, FaTrash } from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext";
+import { auth } from "../firebaseConfig";
+import { signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 
 const QuoteReminder = () => {
@@ -10,7 +13,14 @@ const QuoteReminder = () => {
   const [reminders, setReminders] = useState(
     JSON.parse(localStorage.getItem("reminders")) || []
   );
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
   const { darkMode } = useTheme();
+
+  // ✅ Set user on mount
+  useEffect(() => {
+    setUser(auth.currentUser);
+  }, []);
 
   // ✅ Request Notification Permission
   const requestNotificationPermission = async () => {
@@ -89,13 +99,33 @@ const QuoteReminder = () => {
     toast.success("Reminder deleted successfully! ❌");
   };
 
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/login");
+  };
+
   return (
     <Container className="d-flex flex-column justify-content-center align-items-center min-vh-100">
       <Card
         style={{ width: "100%", maxWidth: "400px" }}
         className={`p-4 shadow-lg text-center ${darkMode ? "bg-dark text-light" : "bg-light text-dark"}`}
       >
-        <h4 className="mb-4 fw-bold">📅 Set Multiple Quote Reminders</h4>
+        {/* Welcome Message */}
+        <h4 className="mb-3 fw-bold">📅 Set Multiple Quote Reminders</h4>
+        {user && <p>Logged in as: <strong>{user.email}</strong></p>}
+
+        {/* Logout Button */}
+        {user && (
+          <Button
+            variant="danger"
+            className="mb-3 w-100"
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
+        )}
+
+        {/* Reminder Form */}
         <Form>
           <Form.Group className="mb-3">
             <Form.Control
