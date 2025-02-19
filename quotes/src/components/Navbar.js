@@ -3,10 +3,17 @@ import { Navbar, Container, Button, Dropdown } from "react-bootstrap";
 import { useTheme } from "../context/ThemeContext";
 import { FaSun, FaMoon, FaQuoteLeft } from "react-icons/fa";
 import { Link } from "react-router-dom"; // ✅ Use Link for navigation
+import { signOut } from "firebase/auth";
+import { auth } from "../firebaseConfig";
+import { useNavigate } from "react-router-dom";
 
 const CustomNavbar = () => {
   const { darkMode, toggleTheme } = useTheme();
-
+const navigate = useNavigate();
+const handleLogout = () => {
+  signOut(auth);
+  navigate("/login");
+};
   return (
     <Navbar bg={darkMode ? "dark" : "light"} variant={darkMode ? "dark" : "light"} fixed="top">
       <Container>
@@ -31,6 +38,8 @@ const CustomNavbar = () => {
           <Button variant="outline-secondary" onClick={toggleTheme}>
             {darkMode ? <FaSun /> : <FaMoon />}
           </Button>
+          <Button variant="danger" onClick={handleLogout} >Logout</Button>
+
         </div>
       </Container>
     </Navbar>

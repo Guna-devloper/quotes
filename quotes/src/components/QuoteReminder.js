@@ -3,8 +3,9 @@ import { Card, Button, Form, Container } from "react-bootstrap";
 import { FaBell } from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext"; // Import dark mode context
 import toast, { Toaster } from "react-hot-toast"; // Import react-hot-toast
-
 const QuoteReminder = () => {
+
+
   const [time, setTime] = useState(localStorage.getItem("reminderTime") || "");
   const [customQuote, setCustomQuote] = useState("");
   const [favoriteQuotes, setFavoriteQuotes] = useState(
@@ -117,7 +118,9 @@ const QuoteReminder = () => {
           >
             <FaBell className="me-2" /> Set Reminder
           </Button>
+
         </Form>
+
       </Card>
 
       {/* React Toaster for notifications */}
